@@ -338,26 +338,38 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('수동 제어')),
       body: Padding(
-        padding: EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(26.0),
         child: Column(
           children: [
             Text(
               '현재 자동 스케줄: 6시 물공급, LED 9~21시',
               style: TextStyle(fontSize: 16),
             ),
-            SizedBox(height: 30),
-            ElevatedButton.icon(
-              icon: Icon(Icons.water_drop),
+            SizedBox(height: 100),
+            ElevatedButton(
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('물 공급 시작!')),
                 );
               },
-              label: Text('물 공급 시작'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(140, 48), // 버튼 크기 고정
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min, // Row가 자식 크기만큼만 차지하도록
+                mainAxisAlignment: MainAxisAlignment.center, // 가운데 정렬
+                children: [
+                  Icon(Icons.water_drop),
+                  SizedBox(width: 8), // 아이콘과 텍스트 사이 간격
+                  Text(
+                    '물 공급 시작',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              icon: Icon(ledOn ? Icons.lightbulb : Icons.lightbulb_outline),
+            SizedBox(height: 30),
+            ElevatedButton(
               onPressed: () {
                 setState(() {
                   ledOn = !ledOn;
@@ -366,8 +378,23 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
                   SnackBar(content: Text(ledOn ? 'LED 켜짐' : 'LED 꺼짐')),
                 );
               },
-              label: Text(ledOn ? 'LED 끄기' : 'LED 켜기'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(140, 48),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(ledOn ? Icons.lightbulb : Icons.lightbulb_outline),
+                  SizedBox(width: 8),
+                  Text(
+                    ledOn ? 'LED 끄기' : 'LED 켜기',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
             ),
+
           ],
         ),
       ),
@@ -405,24 +432,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  Map<DateTime, Map<String, dynamic>> records = {}; // 캐시용
+  // key를 DateTime이 아닌 yyyy-MM-dd 문자열로 관리
+  Map<String, Map<String, dynamic>> records = {};
 
   @override
   void initState() {
     super.initState();
-    _loadAllRecords(); // 초기 불러오기 (선택 사항)
+    _loadAllRecords();
   }
 
   Future<void> _loadAllRecords() async {
-    final snapshot = await FirebaseFirestore.instance.collection('plant_records').get();
-    final Map<DateTime, Map<String, dynamic>> loaded = {};
+    final snapshot =
+    await FirebaseFirestore.instance.collection('plant_records').get();
+
+    final Map<String, Map<String, dynamic>> loaded = {};
 
     for (var doc in snapshot.docs) {
-      // 문서 ID를 DateTime으로 변환 (문서 ID는 'YYYY-MM-DD' 형태라고 가정)
-      final date = DateTime.tryParse(doc.id);
-      if (date != null) {
-        loaded[date] = doc.data();
-      }
+      final dateStr = doc.id; // Firestore 문서 ID가 yyyy-MM-dd 형식 가정
+      loaded[dateStr] = doc.data();
     }
 
     setState(() {
@@ -472,7 +499,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 MaterialPageRoute(
                   builder: (_) => AddRecordScreen(date: selectedDay),
                 ),
-              ).then((_) => _loadAllRecords()); // 기록 추가 후 재로드
+              ).then((_) => _loadAllRecords());
             },
             child: Text('새로운 기록 추가 / 수정'),
           ),
@@ -482,18 +509,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildMarker(DateTime date) {
-    final record = records[date];
+    final dateStr = _formatDate(date);
+    final record = records[dateStr];
     if (record == null) return SizedBox.shrink();
 
-    String? status = record['status'];
-    if (status == '정상') {
-      return Icon(Icons.circle, color: Colors.green, size: 8);
-    } else if (status == '문제 발생') {
-      return Icon(Icons.circle, color: Colors.red, size: 8);
+    String? status = record['status']?.toString().toLowerCase();
+
+    if (status == '정상' || status == 'normal') {
+      return Icon(Icons.circle, color: Colors.green, size: 10);
+    } else if (status == '문제 발생' ||
+        status == 'problem' ||
+        status == '질병 있음' ||
+        status == 'disease') {
+      return Icon(Icons.circle, color: Colors.red, size: 10);
     }
+
+    if (record['disease'] != null && record['disease'].toString().isNotEmpty) {
+      return Icon(Icons.circle, color: Colors.red, size: 10);
+    }
+
     return SizedBox.shrink();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -514,16 +550,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
           SizedBox(height: 20),
-          Text('🟢 정상    🔴 문제 발생'),
+          Text('🟢 정상    🔴 문제 발생 / 질병 있음'),
         ],
       ),
     );
   }
 }
 
+// 기록 추가/수정 스크린
 class AddRecordScreen extends StatefulWidget {
   final DateTime date;
-  const AddRecordScreen({Key? key, required this.date}) : super(key: key);
+  AddRecordScreen({required this.date});
 
   @override
   _AddRecordScreenState createState() => _AddRecordScreenState();
@@ -532,7 +569,6 @@ class AddRecordScreen extends StatefulWidget {
 class _AddRecordScreenState extends State<AddRecordScreen> {
   final TextEditingController _notesController = TextEditingController();
   String? _status;
-
   final List<String> _statusOptions = ['정상', '문제 발생'];
 
   @override
