@@ -5,8 +5,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-
+import 'package:camera/camera.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 비동기 초기화 보장
   await Firebase.initializeApp(
@@ -35,7 +34,7 @@ class OrchidCareApp extends StatelessWidget {
           ),
         ),
       ),
-      home: MainScreen(),
+        home: MainScreen(),
     );
   }
 }
@@ -45,36 +44,43 @@ class MainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('내 난초 관리 앱', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('내 난초 관리 앱',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         centerTitle: true,
-        elevation: 3,
+        backgroundColor: Colors.green[700],
+        elevation: 4,
       ),
       body: Column(
         children: [
+          // 카메라 영역 (크기 줄임)
           Expanded(
-            flex: 4,
+            flex: 3,
             child: Container(
-              margin: EdgeInsets.all(12),
+              margin: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green[100],
+                gradient: LinearGradient(
+                  colors: [Colors.green[100]!, Colors.green[200]!],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.green.withOpacity(0.3),
+                    color: Colors.green.withOpacity(0.4),
                     blurRadius: 10,
                     offset: Offset(0, 6),
                   )
                 ],
               ),
               child: Center(
-                child: Icon(Icons.camera_alt_outlined, size: 120, color: Colors.green[700]),
+                child: Icon(Icons.camera_alt_outlined, size: 100, color: Colors.green[800]),
               ),
             ),
           ),
+          // 버튼 영역
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
@@ -82,8 +88,16 @@ class MainScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(builder: (_) => PlantDetailScreen()),
                     ),
-                    icon: Icon(Icons.local_florist_outlined),
-                    label: Text('내 식물 보기'),
+                    icon: Icon(Icons.local_florist_outlined, color: Colors.white),
+                    label: Text('내 식물 보기', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[600],
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 6,
+                    ),
                   ),
                 ),
                 SizedBox(width: 16),
@@ -93,18 +107,28 @@ class MainScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(builder: (_) => QrScanScreen()),
                     ),
-                    icon: Icon(Icons.qr_code_scanner),
-                    label: Text('QR 코드 등록'),
+                    icon: Icon(Icons.qr_code_scanner, color: Colors.white),
+                    label: Text('QR 코드 등록', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[600],
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 6,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+          SizedBox(height: 20), // 너무 아래 붙는 것 방지
         ],
       ),
     );
   }
 }
+
 
 class QrScanScreen extends StatefulWidget {
   @override
@@ -159,19 +183,59 @@ class _QrScanScreenState extends State<QrScanScreen> {
     );
   }
 }
-class PlantDetailScreen extends StatelessWidget {
-  final String lastUpdated = DateFormat('HH:mm:ss').format(DateTime.now());
+class PlantDetailScreen extends StatefulWidget {
+  @override
+  _PlantDetailScreenState createState() => _PlantDetailScreenState();
+}
 
-  // 예시로 질병 여부, 병명, 병변 사진 URL 변수 추가
-  final bool hasDisease = true;  // 임시: 질병 있음 여부
+class _PlantDetailScreenState extends State<PlantDetailScreen> {
+  CameraController? _cameraController;
+  List<CameraDescription>? _cameras;
+  bool _isCameraInitialized = false;
+
+  final String lastUpdated = DateFormat('HH:mm:ss').format(DateTime.now());
+  final bool hasDisease = true;
   final String diseaseName = '탄저병';
-  final String diseaseImageUrl = 'https://example.com/disease_spot.jpg'; // 실제 사진 URL이나 AssetImage 써도 됨
+  final String diseaseImageUrl = 'https://example.com/disease_spot.jpg';
+
+  @override
+  void initState() {
+    super.initState();
+    _initCamera();
+  }
+
+  Future<void> _initCamera() async {
+    _cameras = await availableCameras();
+    if (_cameras != null && _cameras!.isNotEmpty) {
+      _cameraController = CameraController(
+        _cameras![0], // 후면 카메라
+        ResolutionPreset.medium,
+      );
+
+      await _cameraController!.initialize();
+      if (!mounted) return;
+
+      setState(() {
+        _isCameraInitialized = true;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('내 식물 정보'),
+        title: Text(
+          '내 식물 정보',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.green[700],
         actions: [
           IconButton(
             icon: Icon(
@@ -179,7 +243,6 @@ class PlantDetailScreen extends StatelessWidget {
               color: hasDisease ? Colors.redAccent : Colors.greenAccent,
             ),
             onPressed: () {
-              // 클릭 시 다이얼로그 띄우기
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -220,20 +283,46 @@ class PlantDetailScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // 카메라 실시간 영상 영역 + 센서값 표시 (왼쪽 상단)
             Container(
               height: 250,
-              color: Colors.green[100],
-              child: Center(child: Icon(Icons.videocam, size: 100)),
+              width: double.infinity,
+              color: Colors.black,
+              child: Stack(
+                children: [
+                  _isCameraInitialized
+                      ? CameraPreview(_cameraController!)
+                      : Center(child: CircularProgressIndicator()),
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: Container(
+                      padding:
+                      EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black45,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          sensorRow('🌡️ 온도', '23°C', Colors.white),
+                          sensorRow('💧 습도', '55%', Colors.white),
+                          sensorRow('🌱 토양 습도', '28%', Colors.white),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
+
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  sensorRow('온도', '23°C'),
-                  sensorRow('습도', '55%'),
-                  sensorRow('토양 습도', '28%'),
-                  Text('업데이트: $lastUpdated'),
                   SizedBox(height: 20),
+
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
@@ -242,34 +331,14 @@ class PlantDetailScreen extends StatelessWidget {
                     crossAxisSpacing: 10,
                     childAspectRatio: 3,
                     children: [
-                      ElevatedButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => AutoControlScreen()),
-                        ),
-                        child: Text('자동 관리 일정'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => ManualControlScreen()),
-                        ),
-                        child: Text('수동 제어'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => StatusScreen()),
-                        ),
-                        child: Text('현재 상태'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => CalendarScreen()),
-                        ),
-                        child: Text('캘린더'),
-                      ),
+                      customButton(
+                          context, '자동 관리 일정', Icons.schedule, AutoControlScreen()),
+                      customButton(
+                          context, '수동 제어', Icons.settings_remote, ManualControlScreen()),
+                      customButton(
+                          context, '현재 상태', Icons.info_outline, StatusScreen()),
+                      customButton(
+                          context, '캘린더', Icons.calendar_today, CalendarScreen()),
                     ],
                   ),
                 ],
@@ -281,49 +350,131 @@ class PlantDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget sensorRow(String label, String value) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4.0),
+  Widget sensorRow(String label, String value, Color textColor) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 2.0),
     child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text('$label: ', style: TextStyle(fontWeight: FontWeight.bold)),
-        Text(value),
+        Text('$label: ',
+            style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+        Text(value, style: TextStyle(color: textColor)),
       ],
     ),
   );
-}
 
-class AutoControlScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('자동 관리 일정')),
-      body: Padding(
-        padding: EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.water_drop, color: Colors.blueAccent),
-                SizedBox(width: 10),
-                Expanded(child: Text('💧 물 공급 예정: 6시 (토양 습도 30% 이하)', style: TextStyle(fontSize: 18))),
-              ],
-            ),
-            SizedBox(height: 20),
-            Row(
-              children: [
-                Icon(Icons.light_mode, color: Colors.orangeAccent),
-                SizedBox(width: 10),
-                Expanded(child: Text('💡 LED 작동 예정: 9시 ~ 21시', style: TextStyle(fontSize: 18))),
-              ],
-            ),
-          ],
+  Widget customButton(BuildContext context, String label, IconData icon, Widget screen) {
+    return ElevatedButton.icon(
+      onPressed: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+      },
+      icon: Icon(icon, color: Colors.white),
+      label: Text(label, style: TextStyle(color: Colors.white)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.green[600],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
     );
   }
 }
+class AutoControlScreen extends StatelessWidget {
+  final DateTime nextWaterTime = DateTime.now().add(Duration(hours: 2));
+  final int soilHumidity = 25; // 실제론 센서 데이터 연동
+  final int lightLevel = 500;  // lux 단위 예시
+
+  String getTimeLeft(DateTime target) {
+    final now = DateTime.now();
+    final diff = target.difference(now);
+    if (diff.isNegative) return '지금 관리 필요!';
+    final hours = diff.inHours;
+    final minutes = diff.inMinutes % 60;
+    return '$hours 시간 $minutes 분 남음';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('자동 관리 일정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.green[700],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.green[50]!, Colors.green[100]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        padding: EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '다음 물 공급까지: ${getTimeLeft(nextWaterTime)}',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.green[900]),
+            ),
+            SizedBox(height: 20),
+
+            _buildScheduleCard(
+              icon: Icons.water_drop,
+              iconColor: Colors.blueAccent,
+              text: '💧 물 공급 예정: 6시 (토양 습도 30% 이하)',
+            ),
+            SizedBox(height: 10),
+            Text('현재 토양 습도: $soilHumidity% ${soilHumidity < 30 ? '(관리 필요)' : '(적정)'}',
+                style: TextStyle(fontSize: 16, color: soilHumidity < 30 ? Colors.red : Colors.green)),
+            SizedBox(height: 20),
+
+            _buildScheduleCard(
+              icon: Icons.light_mode,
+              iconColor: Colors.orangeAccent,
+              text: '💡 LED 작동 예정: 9시 ~ 21시',
+            ),
+            SizedBox(height: 10),
+            Text('빛 밝기 : 적당함',
+                style: TextStyle(fontSize: 16, color: Colors.orange[700])),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScheduleCard({required IconData icon, required Color iconColor, required String text}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.withOpacity(0.2),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          )
+        ],
+      ),
+      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+      child: Row(
+        children: [
+          Icon(icon, color: iconColor, size: 32),
+          SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 
 class ManualControlScreen extends StatefulWidget {
   @override
@@ -336,40 +487,87 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('수동 제어')),
-      body: Padding(
-        padding: EdgeInsets.all(26.0),
+      appBar: AppBar(
+        title: Text(
+          '수동 제어',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.green[700],
+        centerTitle: true,
+        elevation: 4,
+        shadowColor: Colors.black45,
+      ),
+      body: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 40),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.green.shade50, Colors.green.shade200],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              '현재 자동 스케줄: 6시 물공급, LED 9~21시',
-              style: TextStyle(fontSize: 16),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.green[700],
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.green.shade900.withOpacity(0.4),
+                    offset: Offset(0, 4),
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              child: Text(
+                '현재 자동 스케줄',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                ),
+              ),
             ),
-            SizedBox(height: 100),
-            ElevatedButton(
+            SizedBox(height: 8),
+            Text(
+              '⏰ 6시 물 공급,  💡 LED 9시 ~ 21시',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.green[900],
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 90),
+            ElevatedButton.icon(
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('물 공급 시작!')),
                 );
               },
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(140, 48), // 버튼 크기 고정
+              icon: Icon(Icons.water_drop, color: Colors.white),
+              label: Text(
+                '물 공급 시작',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min, // Row가 자식 크기만큼만 차지하도록
-                mainAxisAlignment: MainAxisAlignment.center, // 가운데 정렬
-                children: [
-                  Icon(Icons.water_drop),
-                  SizedBox(width: 8), // 아이콘과 텍스트 사이 간격
-                  Text(
-                    '물 공급 시작',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                minimumSize: Size(220, 60),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 8,
+                shadowColor: Colors.blue.withOpacity(0.6),
               ),
             ),
-            SizedBox(height: 30),
-            ElevatedButton(
+            SizedBox(height: 50),
+            ElevatedButton.icon(
               onPressed: () {
                 setState(() {
                   ledOn = !ledOn;
@@ -378,23 +576,28 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
                   SnackBar(content: Text(ledOn ? 'LED 켜짐' : 'LED 꺼짐')),
                 );
               },
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(140, 48),
+              icon: Icon(
+                ledOn ? Icons.lightbulb : Icons.lightbulb_outline,
+                color: ledOn ? Colors.amber : Colors.grey[300],
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(ledOn ? Icons.lightbulb : Icons.lightbulb_outline),
-                  SizedBox(width: 8),
-                  Text(
-                    ledOn ? 'LED 끄기' : 'LED 켜기',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
+              label: Text(
+                ledOn ? 'LED 끄기' : 'LED 켜기',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: ledOn ? Colors.amber[700] : Colors.grey[200],
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ledOn ? Colors.grey[850] : Colors.grey[700],
+                minimumSize: Size(220, 60),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 8,
+                shadowColor: Colors.black45,
               ),
             ),
-
           ],
         ),
       ),
@@ -403,26 +606,229 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
 }
 
 class StatusScreen extends StatelessWidget {
-  final String statusMessage = '현재 완벽한 환경에서 생장 중!';
+  // 예시 센서 데이터 - 실제 하드웨어 연동 시 데이터 바인딩 필요
+  final double temperature = 24.5;  // 섭씨
+  final double humidity = 60;       // %
+  final double soilMoisture = 35;   // %
+  final String lightLevel = "적당함"; // 빛 밝기 쉬운말 표현
+
+  final DateTime lastWatered = DateTime.now().subtract(Duration(hours: 5));
+  final DateTime lastLedOn = DateTime.now().subtract(Duration(hours: 2));
+
+  final bool alertSoilDry = false;
+  final bool alertLightLow = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('현재 상태')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
-          child: Text(
-            statusMessage,
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.green[700]),
-            textAlign: TextAlign.center,
-          ),
+      appBar: AppBar(
+        title: Text('현재 상태'),
+        backgroundColor: Colors.green[700],
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 상태 요약 카드
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              color: Colors.green[50],
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Text(
+                      '🌿 식물 상태',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green[700],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      '현재 완벽한 환경에서 생장 중!',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.green[900],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: 30),
+
+            // 센서 데이터 카드
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '센서 데이터',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green[700],
+                      ),
+                    ),
+                    SizedBox(height: 20),
+
+                    _sensorRow(Icons.thermostat, '온도', '${temperature.toStringAsFixed(1)}°C'),
+                    Divider(),
+                    _sensorRow(Icons.opacity, '습도', '${humidity.toStringAsFixed(0)}%'),
+                    Divider(),
+                    _sensorRow(Icons.grass, '토양 수분', '${soilMoisture.toStringAsFixed(0)}%'),
+                    Divider(),
+                    _sensorRow(Icons.wb_sunny, '빛 밝기', lightLevel),
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: 30),
+
+            // 경고 및 알림 카드
+            if (alertSoilDry || alertLightLow) ...[
+              Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                color: Colors.red[50],
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '⚠️ 경고 알림',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red[700],
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      if (alertSoilDry)
+                        Text('토양이 너무 건조합니다. 물을 주세요.',
+                            style: TextStyle(fontSize: 16)),
+                      if (alertLightLow)
+                        Text('빛이 부족합니다. LED를 켜주세요.',
+                            style: TextStyle(fontSize: 16)),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 30),
+            ],
+
+            // 최근 자동 관리 내역 카드
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '최근 자동 관리 내역',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green[700],
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      '💧 마지막 물 공급: ${_formatDateTime(lastWatered)}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      '💡 마지막 LED 켜짐: ${_formatDateTime(lastLedOn)}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: 30),
+
+            // 관리 팁 카드
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              color: Colors.green[100],
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '🌱 오늘의 관리 팁',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green[800],
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      '토양 수분이 30% 이하일 때 물을 주세요.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      '빛 밝기가 적당하면 LED를 켜지 않아도 괜찮아요.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            SizedBox(height: 40),
+          ],
         ),
       ),
     );
   }
-}
 
+  Widget _sensorRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.green[700], size: 28),
+          SizedBox(width: 16),
+          Text(
+            label,
+            style: TextStyle(fontSize: 18, color: Colors.green[900]),
+          ),
+          Spacer(),
+          Text(
+            value,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.green[900]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDateTime(DateTime dt) {
+    // 예: 06월 10일 15:30
+    return '${dt.month.toString().padLeft(2, '0')}월 ${dt.day.toString().padLeft(2, '0')}일 ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+}
 class CalendarScreen extends StatefulWidget {
   @override
   _CalendarScreenState createState() => _CalendarScreenState();
