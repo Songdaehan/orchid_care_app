@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "883490309996",
+    "project_id": "orchidcareapp",
+    "storage_bucket": "orchidcareapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:883490309996:android:28f1949c6232a314725549",
+        "android_client_info": {
+          "package_name": "com.example.orchid_care_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAk-J0zpiDeS0rwOFKewbK6ZZLIRJ-3HZA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
