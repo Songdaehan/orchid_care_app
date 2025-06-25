@@ -6,6 +6,13 @@ import 'package:camera/camera.dart';
 import 'dart:convert'; // JSON 인코딩/디코딩을 위해 필요
 import 'package:http/http.dart' as http; // HTTP 요청을 위해 필요
 import 'dart:io'; // Platform.isAndroid 등을 위해 필요
+import 'package:image_picker/image_picker.dart'; // 이미지 피커 사용을 위해
+import 'package:http_parser/http_parser.dart'; // MultipartFile을 위해
+import 'package:path/path.dart' as path; // 파일 경로 처리를 위해
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+
 
 // ApiService 클래스는 별도의 파일(lib/services/api_service.dart)에 있다고 가정하고 임포트합니다.
 import 'package:orchid_care_app/services/api_service.dart'; // 프로젝트 이름에 맞춰 경로 확인 및 수정!
@@ -207,12 +214,15 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
   // stomp_dart_client 인스턴스
   late StompClient stompClient; // late 키워드 사용
 
+  String? _latestImageUrl; // ⭐ 최신 이미지 URL을 저장할 변수
+  final ImagePicker _picker = ImagePicker(); // 이미지 피커 인스턴스
   @override
   void initState() {
     super.initState();
     _initCamera();
     _loadSensorData(); // REST API를 통한 초기 데이터 로드 (WebSocket 연결 전 또는 실패 시 대비)
     _initStompClient(); // STOMP 클라이언트 초기화
+
   }
 
   @override
@@ -276,17 +286,19 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
 
   // UI에 센서값을 실시간 반영하는 함수
   void _updateSensorUI(Map<String, dynamic> data) {
-    if (!mounted) return; // 위젯이 mounted 상태인지 확인
+    if (!mounted) return;
     setState(() {
       _sensorData = data;
       _isLoadingSensorData = false;
 
       if (_sensorData != null && _sensorData!['recordedAt'] != null) {
         try {
-          final recordedTime = DateTime.parse(_sensorData!['recordedAt']);
+          // 백엔드에서 받은 문자열을 DateTime 객체로 파싱 후, 명시적으로 로컬 시간대로 변환
+          final recordedTime = DateTime.parse(_sensorData!['recordedAt']).toLocal();
           _lastUpdatedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(recordedTime);
         } catch (e) {
           _lastUpdatedTime = '시간 파싱 오류';
+          print('Error parsing recordedAt in _updateSensorUI: $e'); // 디버깅용 로그
         }
       } else {
         _lastUpdatedTime = '데이터 없음';
@@ -294,6 +306,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     });
   }
 
+// _PlantDetailScreenState 클래스 내부의 _loadSensorData 함수 수정
   Future<void> _loadSensorData() async {
     if (!mounted) return;
     setState(() {
@@ -310,16 +323,19 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
       _isLoadingSensorData = false;
       if (_sensorData != null && _sensorData!['recordedAt'] != null) {
         try {
-          final recordedTime = DateTime.parse(_sensorData!['recordedAt']);
+          // 백엔드에서 받은 문자열을 DateTime 객체로 파싱 후, 명시적으로 로컬 시간대로 변환
+          final recordedTime = DateTime.parse(_sensorData!['recordedAt']).toLocal();
           _lastUpdatedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(recordedTime);
         } catch (e) {
           _lastUpdatedTime = '시간 파싱 오류';
+          print('Error parsing recordedAt in _loadSensorData: $e'); // 디버깅용 로그
         }
       } else {
         _lastUpdatedTime = '데이터 없음';
       }
     });
   }
+
 
   void _sendSensorDataToBackend() async {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -444,10 +460,9 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                         children: [
                           sensorRow('🌡️ 온도', '${(_sensorData!['temperature'] as num?)?.toStringAsFixed(1) ?? '?'}°C', Colors.white),
                           sensorRow('💧 습도', '${(_sensorData!['humidity'] as num?)?.toStringAsFixed(1) ?? '?'}%', Colors.white),
-                          sensorRow('🌱 토양 습도', '${(_sensorData!['soilMoisture'] as num?)?.toStringAsFixed(1) ?? '?'}%', Colors.white),
-                          sensorRow('N', '${(_sensorData!['npkN'] as num?)?.toStringAsFixed(1) ?? '?'}', Colors.white),
-                          sensorRow('P', '${(_sensorData!['npkP'] as num?)?.toStringAsFixed(1) ?? '?'}', Colors.white),
-                          sensorRow('K', '${(_sensorData!['npkK'] as num?)?.toStringAsFixed(1) ?? '?'}', Colors.white),
+                          sensorRow('🌡️ 토양온도', '${(_sensorData!['soilTemperature'] as num?)?.toStringAsFixed(1) ?? '?'}°C', Colors.white),
+                          sensorRow('⚡ 토양EC', '${(_sensorData!['soilEC'] as num?)?.toStringAsFixed(0) ?? '?'} µS/cm', Colors.white), // 단위 예시
+                          sensorRow('🧪 토양PH', '${(_sensorData!['soilPH'] as num?)?.toStringAsFixed(1) ?? '?'}', Colors.white),
                           SizedBox(height: 4),
                           Text('최신 업데이트: $_lastUpdatedTime', style: TextStyle(color: Colors.grey[300], fontSize: 10)),
                         ],
@@ -638,31 +653,54 @@ class ManualControlScreen extends StatefulWidget {
 }
 
 class _ManualControlScreenState extends State<ManualControlScreen> {
-  bool ledOn = false; // 현재 LED 상태
+  bool ledOn = false;
+  BluetoothConnection? connection;
+  bool isConnected = false;
 
-  // 물 공급 시작 버튼 액션
-  void _startWatering() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('물 공급 명령 전송 중...')),
+  @override
+  void initState() {
+    super.initState();
+    _connectToBluetooth();
+  }
+
+  Future<void> _connectToBluetooth() async {
+    final devices = await FlutterBluetoothSerial.instance.getBondedDevices();
+    final targetDevice = devices.firstWhere(
+          (d) => d.name == "pyum",
+      orElse: () => BluetoothDevice(name: "", address: ""),
     );
-    final apiService = ApiService();
-    // 실제 deviceId를 사용해야 하지만, 현재는 테스트용으로 고정
-    bool success = await apiService.controlWater(deviceId: 'ORCHID_CONTROL_001');
 
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('물 공급 명령 전송 완료.')),
-      );
+    if (targetDevice.name != "") {
+      try {
+        connection = await BluetoothConnection.toAddress(targetDevice.address);
+        setState(() => isConnected = true);
+        print("✅ Bluetooth 연결 성공: ${targetDevice.name}");
+      } catch (e) {
+        print("❌ Bluetooth 연결 실패: $e");
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('물 공급 명령 실패! 백엔드 로그 확인.')),
-      );
+      print("❌ 'pyum' 장치를 찾을 수 없습니다.");
     }
   }
 
-  // LED 제어 버튼 액션
+  void _startWatering() async {
+    if (!_checkConnection()) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('물 공급 명령 전송 중...')),
+    );
+
+    connection!.output.add(Uint8List.fromList("w.1".codeUnits));
+    await connection!.output.allSent;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('✅ 물 공급 명령 전송 완료')),
+    );
+  }
+
   void _toggleLed() async {
-    // UI 상태는 명령 전송 성공 여부와 관계없이 즉시 토글하여 사용자에게 빠른 피드백 제공
+    if (!_checkConnection()) return;
+
     setState(() {
       ledOn = !ledOn;
     });
@@ -671,23 +709,30 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
       SnackBar(content: Text('LED 명령 전송 중...')),
     );
 
-    final apiService = ApiService();
-    // 실제 deviceId를 사용해야 하지만, 현재는 테스트용으로 고정
-    bool success = await apiService.controlLed(deviceId: 'ORCHID_CONTROL_001', state: ledOn);
+    String command = ledOn ? "R.1" : "R.0";
 
-    if (success) {
+    connection!.output.add(Uint8List.fromList(command.codeUnits));
+    await connection!.output.allSent;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ledOn ? '✅ LED 켜기 명령 완료' : '✅ LED 끄기 명령 완료')),
+    );
+  }
+
+  bool _checkConnection() {
+    if (connection == null || !connection!.isConnected) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ledOn ? 'LED 켜기 명령 성공!' : 'LED 끄기 명령 성공!')),
+        SnackBar(content: Text('❌ Bluetooth 연결이 필요합니다')),
       );
-    } else {
-      // 명령 실패 시 UI 상태를 이전으로 되돌려 사용자에게 정확한 상태를 보여줌
-      setState(() {
-        ledOn = !ledOn; // UI 상태를 다시 되돌림
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('LED 명령 전송 실패! 백엔드 로그 확인.')),
-      );
+      return false;
     }
+    return true;
+  }
+
+  @override
+  void dispose() {
+    connection?.dispose();
+    super.dispose();
   }
 
   @override
@@ -716,7 +761,6 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 수정된 부분: 단순 텍스트로 대체 (자동 스케줄 표시는 그대로 유지)
             Text(
               '현재 자동 스케줄',
               style: TextStyle(
@@ -737,9 +781,17 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 90),
+            SizedBox(height: 16),
+            Text(
+              isConnected ? '🔗 Bluetooth 연결됨' : '❌ Bluetooth 미연결',
+              style: TextStyle(
+                fontSize: 16,
+                color: isConnected ? Colors.green[700] : Colors.redAccent,
+              ),
+            ),
+            SizedBox(height: 60),
             ElevatedButton.icon(
-              onPressed: _startWatering, // ✅ 함수 연결
+              onPressed: _startWatering,
               icon: Icon(Icons.water_drop, color: Colors.white),
               label: Text(
                 '물 공급 시작',
@@ -757,7 +809,7 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
             ),
             SizedBox(height: 50),
             ElevatedButton.icon(
-              onPressed: _toggleLed, // ✅ 함수 연결
+              onPressed: _toggleLed,
               icon: Icon(
                 ledOn ? Icons.lightbulb : Icons.lightbulb_outline,
                 color: ledOn ? Colors.amber : Colors.grey[300],
@@ -1027,7 +1079,11 @@ class StatusScreen extends StatelessWidget {
 
   // _formatDateTime 함수는 이미 존재하므로 그대로 사용
   String _formatDateTime(DateTime dt) {
-    return '${dt.month.toString().padLeft(2, '0')}월 ${dt.day.toString().padLeft(2, '0')}일 ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    // 이미 DateTime 객체로 변환된 것을 받아서, 명시적으로 로컬 시간대로 변환 후 포맷팅
+    return '${dt.toLocal().month.toString().padLeft(2, '0')}월 '
+        '${dt.toLocal().day.toString().padLeft(2, '0')}일 '
+        '${dt.toLocal().hour.toString().padLeft(2, '0')}:'
+        '${dt.toLocal().minute.toString().padLeft(2, '0')}';
   }
 }
 // main.dart 파일 내 CalendarScreen 클래스
@@ -1081,6 +1137,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   String _formatDate(DateTime date) {
     return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) async {
