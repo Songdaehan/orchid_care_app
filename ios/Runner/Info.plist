@@ -2,6 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+<<<<<<< HEAD
     <key>NSCameraUsageDescription</key>
 	<string>이 앱은 식물 사진 촬영 및 질병 진단을 위해 카메라 접근이 필요합니다.</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -12,6 +13,12 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Orchid Care App New</string>
+=======
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Orchid Care App</string>
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -19,7 +26,11 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
+<<<<<<< HEAD
 	<string>orchid_care_app_new</string>
+=======
+	<string>orchid_care_app</string>
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

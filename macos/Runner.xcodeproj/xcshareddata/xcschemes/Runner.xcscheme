@@ -15,7 +15,11 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "33CC10EC2044A3C60003C045"
+<<<<<<< HEAD
                BuildableName = "orchid_care_app_new.app"
+=======
+               BuildableName = "orchid_care_app.app"
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
                BlueprintName = "Runner"
                ReferencedContainer = "container:Runner.xcodeproj">
             </BuildableReference>
@@ -31,7 +35,11 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "33CC10EC2044A3C60003C045"
+<<<<<<< HEAD
             BuildableName = "orchid_care_app_new.app"
+=======
+            BuildableName = "orchid_care_app.app"
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
             BlueprintName = "Runner"
             ReferencedContainer = "container:Runner.xcodeproj">
          </BuildableReference>
@@ -66,7 +74,11 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "33CC10EC2044A3C60003C045"
+<<<<<<< HEAD
             BuildableName = "orchid_care_app_new.app"
+=======
+            BuildableName = "orchid_care_app.app"
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
             BlueprintName = "Runner"
             ReferencedContainer = "container:Runner.xcodeproj">
          </BuildableReference>
@@ -83,7 +95,11 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "33CC10EC2044A3C60003C045"
+<<<<<<< HEAD
             BuildableName = "orchid_care_app_new.app"
+=======
+            BuildableName = "orchid_care_app.app"
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
             BlueprintName = "Runner"
             ReferencedContainer = "container:Runner.xcodeproj">
          </BuildableReference>

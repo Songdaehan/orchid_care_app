@@ -11,9 +11,17 @@ import 'package:http_parser/http_parser.dart'; // MultipartFile을 위해
 import 'package:path/path.dart' as path; // 파일 경로 처리를 위해
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 
 // ApiService 클래스는 별도의 파일(lib/services/api_service.dart)에 있다고 가정하고 임포트합니다.
 import 'package:orchid_care_app_new/services/api_service.dart';
+=======
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+
+
+// ApiService 클래스는 별도의 파일(lib/services/api_service.dart)에 있다고 가정하고 임포트합니다.
+import 'package:orchid_care_app/services/api_service.dart'; // 프로젝트 이름에 맞춰 경로 확인 및 수정!
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
 
 // ⭐ stomp_dart_client를 위한 import 문들 ⭐
 import 'package:stomp_dart_client/stomp.dart';
@@ -25,6 +33,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(OrchidCareApp());
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
 class OrchidCareApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -160,7 +172,11 @@ class _QrScanScreenState extends State<QrScanScreen> {
               if (barcodes.isNotEmpty) {
                 final code = barcodes.first.rawValue;
                 if (code != null && code != lastScannedCode) {
+<<<<<<< HEAD
                   lastScannedCode = code; // 중복 방지 위해 마지막 코드 저장
+=======
+                  lastScannedCode = code;
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('QR 스캔 결과: $code')),
                   );
@@ -204,16 +220,23 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
   bool _isLoadingSensorData = true;
   String _lastUpdatedTime = '데이터 로딩 중...';
 
+<<<<<<< HEAD
   final bool hasDisease = false;
   final String diseaseName = '확인 불가';
   final String diseaseImageUrl = 'https://example.com/default_disease.jpg';
 
   String? _latestImageUrl; // 최신 이미지 URL을 저장할 변수 (백엔드에서 가져옴)
   final ImagePicker _picker = ImagePicker(); // 이미지 피커 인스턴스
+=======
+  final bool hasDisease = true;
+  final String diseaseName = '탄저병';
+  final String diseaseImageUrl = 'https://example.com/disease_spot.jpg';
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
 
   // stomp_dart_client 인스턴스
   late StompClient stompClient; // late 키워드 사용
 
+<<<<<<< HEAD
   @override
   void initState() {
     super.initState();
@@ -221,6 +244,17 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     _loadSensorData(); // 센서 데이터 로드 (REST API)
     _loadLatestImage(); // 최신 이미지 로드
     _initStompClient(); // STOMP 클라이언트 초기화
+=======
+  String? _latestImageUrl; // ⭐ 최신 이미지 URL을 저장할 변수
+  final ImagePicker _picker = ImagePicker(); // 이미지 피커 인스턴스
+  @override
+  void initState() {
+    super.initState();
+    _initCamera();
+    _loadSensorData(); // REST API를 통한 초기 데이터 로드 (WebSocket 연결 전 또는 실패 시 대비)
+    _initStompClient(); // STOMP 클라이언트 초기화
+
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
   }
 
   @override
@@ -230,7 +264,11 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     super.dispose();
   }
 
+<<<<<<< HEAD
   // 카메라 초기화 함수 (앱 내장 카메라 사용 시 필요)
+=======
+  // 카메라 초기화 함수
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
   Future<void> _initCamera() async {
     _cameras = await availableCameras();
     if (_cameras != null && _cameras!.isNotEmpty) {
@@ -249,6 +287,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
   // STOMP 클라이언트 초기화 함수
   void _initStompClient() {
     stompClient = StompClient(
+<<<<<<< HEAD
       config: StompConfig
           .SockJS( // Spring Boot가 SockJS를 사용한다면 StompConfig.SockJS, 아니면 StompConfig.ws
         // 서버 IP와 WebSocket 엔드포인트를 정확히 입력하세요.
@@ -260,6 +299,15 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
         // 연결 성공 시 콜백
         onWebSocketError: (dynamic error) => print('WebSocket Error: $error'),
         // WebSocket 오류
+=======
+      config: StompConfig.SockJS( // Spring Boot가 SockJS를 사용한다면 StompConfig.SockJS, 아니면 StompConfig.ws
+        // 서버 IP와 WebSocket 엔드포인트를 정확히 입력하세요.
+        // 상대방의 OCI 서버 IP: 134.185.115.80, 포트: 8080 가정
+        // Spring Boot WebSocket 엔드포인트는 보통 '/ws-sensor'로 설정됩니다.
+        url: 'http://134.185.115.80:8080/ws-sensor', // OCI 서버 IP, 포트, WebSocket 엔드포인트
+        onConnect: (StompFrame frame) => _onStompConnect(frame), // 연결 성공 시 콜백
+        onWebSocketError: (dynamic error) => print('WebSocket Error: $error'), // WebSocket 오류
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
         stompConnectHeaders: {'accept-version': '1.2'}, // STOMP CONNECT 헤더
       ),
     );
@@ -279,6 +327,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
             print('Received STOMP message: $data');
             _updateSensorUI(data); // 화면에 실시간으로 센서값을 반영하는 함수 호출
           } catch (e) {
+<<<<<<< HEAD
             print('STOMP message JSON parsing error: $e, Message: ${messageFrame
                 .body}');
           }
@@ -295,12 +344,16 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
             _updateImageUI(data); // 이미지 URL을 화면에 실시간 반영하는 함수 호출
           } catch (e) {
             print('STOMP image message JSON parsing error: $e, Message: ${messageFrame.body}');
+=======
+            print('STOMP message JSON parsing error: $e, Message: ${messageFrame.body}');
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
           }
         }
       },
     );
   }
 
+<<<<<<< HEAD
 // ⭐ 이미지 URL을 실시간으로 반영하는 새로운 함수 추가 ⭐
   void _updateImageUI(Map<String, dynamic> data) {
     if (!mounted) return;
@@ -315,6 +368,8 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
   }
 
 
+=======
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
   // UI에 센서값을 실시간 반영하는 함수
   void _updateSensorUI(Map<String, dynamic> data) {
     if (!mounted) return;
@@ -324,6 +379,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
 
       if (_sensorData != null && _sensorData!['recordedAt'] != null) {
         try {
+<<<<<<< HEAD
           final recordedTime = DateTime
               .parse(_sensorData!['recordedAt'])
               .toLocal();
@@ -332,6 +388,14 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
         } catch (e) {
           _lastUpdatedTime = '시간 파싱 오류';
           print('Error parsing recordedAt in _updateSensorUI: $e');
+=======
+          // 백엔드에서 받은 문자열을 DateTime 객체로 파싱 후, 명시적으로 로컬 시간대로 변환
+          final recordedTime = DateTime.parse(_sensorData!['recordedAt']).toLocal();
+          _lastUpdatedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(recordedTime);
+        } catch (e) {
+          _lastUpdatedTime = '시간 파싱 오류';
+          print('Error parsing recordedAt in _updateSensorUI: $e'); // 디버깅용 로그
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
         }
       } else {
         _lastUpdatedTime = '데이터 없음';
@@ -339,6 +403,10 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     });
   }
 
+<<<<<<< HEAD
+=======
+// _PlantDetailScreenState 클래스 내부의 _loadSensorData 함수 수정
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
   Future<void> _loadSensorData() async {
     if (!mounted) return;
     setState(() {
@@ -355,6 +423,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
       _isLoadingSensorData = false;
       if (_sensorData != null && _sensorData!['recordedAt'] != null) {
         try {
+<<<<<<< HEAD
           final recordedTime = DateTime
               .parse(_sensorData!['recordedAt'])
               .toLocal();
@@ -363,6 +432,14 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
         } catch (e) {
           _lastUpdatedTime = '시간 파싱 오류';
           print('Error parsing recordedAt in _loadSensorData: $e');
+=======
+          // 백엔드에서 받은 문자열을 DateTime 객체로 파싱 후, 명시적으로 로컬 시간대로 변환
+          final recordedTime = DateTime.parse(_sensorData!['recordedAt']).toLocal();
+          _lastUpdatedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(recordedTime);
+        } catch (e) {
+          _lastUpdatedTime = '시간 파싱 오류';
+          print('Error parsing recordedAt in _loadSensorData: $e'); // 디버깅용 로그
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
         }
       } else {
         _lastUpdatedTime = '데이터 없음';
@@ -370,6 +447,10 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     });
   }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
   void _sendSensorDataToBackend() async {
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('센서 데이터 전송 중...'))
@@ -390,7 +471,12 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('센서 데이터 백엔드 전송 성공!')),
       );
+<<<<<<< HEAD
       _loadSensorData(); // 데이터 전송 후 REST API로 즉시 업데이트
+=======
+      // 데이터 전송 후 REST API로 즉시 업데이트 (WebSocket 문제 시 대비)
+      _loadSensorData();
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('센서 데이터 백엔드 전송 실패! 네트워크 또는 서버 로그 확인!')),
@@ -398,6 +484,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     }
   }
 
+<<<<<<< HEAD
   // 최신 이미지 URL을 백엔드에서 가져오는 함수
 
   Future<void> _loadLatestImage() async {
@@ -519,6 +606,8 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
   }
 
 // PlantDetailScreen의 build 메서드 내부
+=======
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -540,6 +629,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
             tooltip: '센서 데이터 새로고침',
           ),
           IconButton(
+<<<<<<< HEAD
             icon: Icon(Icons.photo_camera), // 이미지 업로드 버튼 (카메라/갤러리 선택)
             onPressed: _pickAndUploadImageForDiagnosis, // ✅ 함수 연결
             tooltip: '이미지 업로드 (라즈베리파이 대체 또는 수동)',
@@ -559,6 +649,13 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
               String currentDiseaseName = _sensorData?['diseaseName'] ?? '확인 불가';
               String? currentDiseaseImageUrl = _sensorData?['diseaseImageUrl'];
 
+=======
+            icon: Icon(
+              hasDisease ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+              color: hasDisease ? Colors.redAccent : Colors.greenAccent,
+            ),
+            onPressed: () {
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -566,6 +663,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+<<<<<<< HEAD
                       Text(currentHasDisease
                           ? '❗ 식물이 질병에 걸렸습니다.\n병명: $currentDiseaseName'
                           : '✔ 현재 질병이 없습니다. 건강합니다!'),
@@ -576,6 +674,17 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                           child: Image.network(
                             // 이미지 접근 URL은 백엔드 ImageController의 WEB_ACCESS_BASE_URL과 일치해야 함
                             'http://134.185.115.80:8080/uploads/$currentDiseaseImageUrl',
+=======
+                      Text(hasDisease
+                          ? '❗ 식물이 질병에 걸렸습니다.\n병명: $diseaseName'
+                          : '✔ 현재 질병이 없습니다. 건강합니다!'),
+                      SizedBox(height: 12),
+                      if (hasDisease)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            diseaseImageUrl,
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
                             height: 150,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
@@ -593,20 +702,28 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                 ),
               );
             },
+<<<<<<< HEAD
             tooltip: '질병 정보 보기',
+=======
+            tooltip: hasDisease ? '질병 정보 보기' : '건강 상태 보기',
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
           )
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
+<<<<<<< HEAD
             // 이미지 표시 영역
+=======
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
             Container(
               height: 250,
               width: double.infinity,
               color: Colors.black,
               child: Stack(
                 children: [
+<<<<<<< HEAD
                   _latestImageUrl != null // ⭐ _latestImageUrl이 null이 아닐 때만 Image.network 표시
                       ? Image.network(
                     _latestImageUrl!, // ⭐ 여기에 받은 URL을 사용합니다.
@@ -646,6 +763,11 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                       ],
                     ),
                   ),
+=======
+                  _isCameraInitialized
+                      ? CameraPreview(_cameraController!)
+                      : Center(child: CircularProgressIndicator()),
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
                   Positioned(
                     top: 10,
                     left: 10,
@@ -659,6 +781,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                       child: _isLoadingSensorData
                           ? CircularProgressIndicator(color: Colors.white)
                           : _sensorData == null
+<<<<<<< HEAD
                           ? Text('센서 데이터 없음', style: TextStyle(color: Colors
                           .white))
                           : Column(
@@ -686,6 +809,19 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                           SizedBox(height: 4),
                           Text('최신 업데이트: $_lastUpdatedTime', style: TextStyle(
                               color: Colors.grey[300], fontSize: 10)),
+=======
+                          ? Text('센서 데이터 없음', style: TextStyle(color: Colors.white))
+                          : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          sensorRow('🌡️ 온도', '${(_sensorData!['temperature'] as num?)?.toStringAsFixed(1) ?? '?'}°C', Colors.white),
+                          sensorRow('💧 습도', '${(_sensorData!['humidity'] as num?)?.toStringAsFixed(1) ?? '?'}%', Colors.white),
+                          sensorRow('🌡️ 토양온도', '${(_sensorData!['soilTemperature'] as num?)?.toStringAsFixed(1) ?? '?'}°C', Colors.white),
+                          sensorRow('⚡ 토양EC', '${(_sensorData!['soilEC'] as num?)?.toStringAsFixed(0) ?? '?'} µS/cm', Colors.white), // 단위 예시
+                          sensorRow('🧪 토양PH', '${(_sensorData!['soilPH'] as num?)?.toStringAsFixed(1) ?? '?'}', Colors.white),
+                          SizedBox(height: 4),
+                          Text('최신 업데이트: $_lastUpdatedTime', style: TextStyle(color: Colors.grey[300], fontSize: 10)),
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
                         ],
                       ),
                     ),
@@ -693,9 +829,14 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                 ],
               ),
             ),
+<<<<<<< HEAD
             // ⭐ 이미지 표시 영역 (Stack으로 감쌈) - 수정 부분 끝 ⭐
 
             Padding( // 이 Padding은 Stack 바깥에, Column의 다음 자식으로 옵니다.
+=======
+
+            Padding(
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
@@ -710,6 +851,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                     childAspectRatio: 3,
                     children: [
                       customButton(
+<<<<<<< HEAD
                           context, '자동 관리 일정', Icons.schedule,
                           AutoControlScreen()),
                       customButton(
@@ -739,6 +881,30 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                       customButton(
                           context, '캘린더', Icons.calendar_today,
                           CalendarScreen()),
+=======
+
+                          context, '자동 관리 일정', Icons.schedule, AutoControlScreen()),
+                      customButton(
+                          context, '수동 제어', Icons.settings_remote, ManualControlScreen()),
+              customButton(
+                  context, '현재 상태', Icons.info_outline,
+                  StatusScreen(
+                    temperature: (_sensorData?['temperature'] as num?)?.toDouble() ?? 0.0,
+                    humidity: (_sensorData?['humidity'] as num?)?.toDouble() ?? 0.0,
+                    soilMoisture: (_sensorData?['soilMoisture'] as num?)?.toDouble() ?? 0.0,
+                    lightLevel: '적당함', // 현재 백엔드 DTO에 lightLevel이 없다면 임시 고정값
+                    // alertSoilDry와 alertLightLow 값을 전달합니다.
+                    // _sensorData에 해당 필드가 있다면 그 값을 사용하고, 없다면 기본값(false)을 사용합니다.
+                    alertSoilDry: _sensorData?['alertSoilDry'] ?? false,
+                    alertLightLow: _sensorData?['alertLightLow'] ?? false,
+                    // lastWatered와 lastLedOn도 백엔드에서 받아온 값을 전달합니다 (nullable 처리)
+                    lastWatered: (_sensorData?['lastWatered'] != null) ? DateTime.parse(_sensorData!['lastWatered']) : null,
+                    lastLedOn: (_sensorData?['lastLedOn'] != null) ? DateTime.parse(_sensorData!['lastLedOn']) : null,
+                  )
+              ),
+                      customButton(
+                          context, '캘린더', Icons.calendar_today, CalendarScreen()),
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
                     ],
                   ),
                 ],
@@ -750,6 +916,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     );
   }
 
+<<<<<<< HEAD
   Widget sensorRow(String label, String value, Color textColor) =>
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 2.0),
@@ -766,6 +933,21 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
 
   Widget customButton(BuildContext context, String label, IconData icon,
       Widget screen) {
+=======
+  Widget sensorRow(String label, String value, Color textColor) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 2.0),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('$label: ',
+            style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+        Text(value, style: TextStyle(color: textColor)),
+      ],
+    ),
+  );
+
+  Widget customButton(BuildContext context, String label, IconData icon, Widget screen) {
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
     return ElevatedButton.icon(
       onPressed: () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
@@ -878,10 +1060,13 @@ class AutoControlScreen extends StatelessWidget {
     );
   }
 }
+<<<<<<< HEAD
 // main.dart 파일 내 ManualControlScreen 클래스
 
 // 블루투스 직접 통신 관련 import는 main.dart 상단에서 제거되어야 합니다.
 // (예: import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart'; 제거)
+=======
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
 
 class ManualControlScreen extends StatefulWidget {
   @override
@@ -889,6 +1074,7 @@ class ManualControlScreen extends StatefulWidget {
 }
 
 class _ManualControlScreenState extends State<ManualControlScreen> {
+<<<<<<< HEAD
   bool ledOn = false; // 현재 LED 상태
 
   // 물 공급 시작 버튼 액션 (HTTP 통신)
@@ -914,6 +1100,56 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
   // LED 제어 버튼 액션 (HTTP 통신)
   void _toggleLed() async {
     // UI 상태는 명령 전송 성공 여부와 관계없이 즉시 토글하여 사용자에게 빠른 피드백 제공
+=======
+  bool ledOn = false;
+  BluetoothConnection? connection;
+  bool isConnected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _connectToBluetooth();
+  }
+
+  Future<void> _connectToBluetooth() async {
+    final devices = await FlutterBluetoothSerial.instance.getBondedDevices();
+    final targetDevice = devices.firstWhere(
+          (d) => d.name == "pyum",
+      orElse: () => BluetoothDevice(name: "", address: ""),
+    );
+
+    if (targetDevice.name != "") {
+      try {
+        connection = await BluetoothConnection.toAddress(targetDevice.address);
+        setState(() => isConnected = true);
+        print("✅ Bluetooth 연결 성공: ${targetDevice.name}");
+      } catch (e) {
+        print("❌ Bluetooth 연결 실패: $e");
+      }
+    } else {
+      print("❌ 'pyum' 장치를 찾을 수 없습니다.");
+    }
+  }
+
+  void _startWatering() async {
+    if (!_checkConnection()) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('물 공급 명령 전송 중...')),
+    );
+
+    connection!.output.add(Uint8List.fromList("w.1".codeUnits));
+    await connection!.output.allSent;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('✅ 물 공급 명령 전송 완료')),
+    );
+  }
+
+  void _toggleLed() async {
+    if (!_checkConnection()) return;
+
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
     setState(() {
       ledOn = !ledOn;
     });
@@ -922,6 +1158,7 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
       SnackBar(content: Text('LED 명령 전송 중...')),
     );
 
+<<<<<<< HEAD
     final apiService = ApiService();
     // 실제 deviceId를 사용해야 하지만, 현재는 테스트용으로 고정
     bool success = await apiService.controlLed(deviceId: 'ORCHID_CONTROL_001', state: ledOn); // ApiService를 통해 백엔드 호출
@@ -939,11 +1176,35 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
         SnackBar(content: Text('LED 명령 전송 실패! 백엔드 로그 확인.')),
       );
     }
+=======
+    String command = ledOn ? "R.1" : "R.0";
+
+    connection!.output.add(Uint8List.fromList(command.codeUnits));
+    await connection!.output.allSent;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ledOn ? '✅ LED 켜기 명령 완료' : '✅ LED 끄기 명령 완료')),
+    );
+  }
+
+  bool _checkConnection() {
+    if (connection == null || !connection!.isConnected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('❌ Bluetooth 연결이 필요합니다')),
+      );
+      return false;
+    }
+    return true;
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
   }
 
   @override
   void dispose() {
+<<<<<<< HEAD
     // BluetoothConnection 객체가 없으므로 dispose할 필요 없습니다.
+=======
+    connection?.dispose();
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
     super.dispose();
   }
 
@@ -973,6 +1234,7 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+<<<<<<< HEAD
             // 서버 연결 상태 표시
             Text(
               '장치 제어 서버 연결 확인 중...', // 앱이 직접 블루투스로 연결하는 것이 아님
@@ -982,6 +1244,8 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
               ),
             ),
             SizedBox(height: 20),
+=======
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
             Text(
               '현재 자동 스케줄',
               style: TextStyle(
@@ -1002,9 +1266,23 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
               ),
               textAlign: TextAlign.center,
             ),
+<<<<<<< HEAD
             SizedBox(height: 60),
             ElevatedButton.icon(
               onPressed: _startWatering, // ✅ 함수 연결
+=======
+            SizedBox(height: 16),
+            Text(
+              isConnected ? '🔗 Bluetooth 연결됨' : '❌ Bluetooth 미연결',
+              style: TextStyle(
+                fontSize: 16,
+                color: isConnected ? Colors.green[700] : Colors.redAccent,
+              ),
+            ),
+            SizedBox(height: 60),
+            ElevatedButton.icon(
+              onPressed: _startWatering,
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
               icon: Icon(Icons.water_drop, color: Colors.white),
               label: Text(
                 '물 공급 시작',
@@ -1022,7 +1300,11 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
             ),
             SizedBox(height: 50),
             ElevatedButton.icon(
+<<<<<<< HEAD
               onPressed: _toggleLed, // ✅ 함수 연결
+=======
+              onPressed: _toggleLed,
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
               icon: Icon(
                 ledOn ? Icons.lightbulb : Icons.lightbulb_outline,
                 color: ledOn ? Colors.amber : Colors.grey[300],
@@ -1051,8 +1333,11 @@ class _ManualControlScreenState extends State<ManualControlScreen> {
     );
   }
 }
+<<<<<<< HEAD
 class BluetoothConnection {
 }
+=======
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
 class StatusScreen extends StatelessWidget {
   final double temperature;
   final double humidity;
@@ -1250,7 +1535,11 @@ class StatusScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 10),
                     Text(
+<<<<<<< HEAD
                       '토양 수분이 10% 이하일 때 물을 주세요.',
+=======
+                      '토양 수분이 30% 이하일 때 물을 주세요.',
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
                       style: TextStyle(fontSize: 16),
                     ),
                     SizedBox(height: 6),

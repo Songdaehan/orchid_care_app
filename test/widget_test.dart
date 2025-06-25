@@ -8,7 +8,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+<<<<<<< HEAD
 import 'package:orchid_care_app_new/main.dart';
+=======
+import 'package:orchid_care_app/main.dart';
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {

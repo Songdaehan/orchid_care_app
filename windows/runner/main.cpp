@@ -27,7 +27,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
+<<<<<<< HEAD
   if (!window.Create(L"orchid_care_app_new", origin, size)) {
+=======
+  if (!window.Create(L"orchid_care_app", origin, size)) {
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

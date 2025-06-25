@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 name: orchid_care_app_new
+=======
+name: orchid_care_app
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
 description: A new Flutter project
 publish_to: 'none'
 
@@ -17,6 +21,10 @@ dependencies:
   stomp_dart_client: 0.4.4
   image_picker: ^1.1.0
   http: ^1.2.1
+<<<<<<< HEAD
+=======
+  flutter_bluetooth_serial: ^0.4.0
+>>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
 
   cupertino_icons: ^1.0.8
 
