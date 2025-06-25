@@ -1,8 +1,8 @@
-<<<<<<< HEAD
+
 # orchid_care_app_new
-=======
+
 # orchid_care_app
->>>>>>> ea7291f607c8482eecc318f01a33e47ef40493a2
+
 
 A new Flutter project.
 
